@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import Clinics from "@/pages/clinics";
 import ClinicDetail from "@/pages/clinic-detail";
 import Insurance from "@/pages/insurance";
+import MyAppointments from "@/pages/my-appointments";
 import { Layout } from "@/components/layout/Layout";
 
 const queryClient = new QueryClient();
@@ -20,6 +21,7 @@ function Router() {
         <Route path="/clinics" component={Clinics} />
         <Route path="/clinics/:id" component={ClinicDetail} />
         <Route path="/insurance" component={Insurance} />
+        <Route path="/my-appointments" component={MyAppointments} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

@@ -108,6 +108,22 @@ export interface Appointment {
   createdAt: string;
 }
 
+export interface AppointmentWithClinic {
+  id: number;
+  clinicId: number;
+  clinicName: string;
+  clinicNeighborhood: string;
+  doctorId: number;
+  doctorName: string;
+  patientName: string;
+  patientEmail: string;
+  patientPhone?: string | null;
+  notes?: string | null;
+  appointmentAt: string;
+  status: string;
+  createdAt: string;
+}
+
 export interface AppointmentInput {
   /**
      * @minLength 1
@@ -126,5 +142,9 @@ specialty?: string;
 neighborhood?: string;
 acceptsNyuInsurance?: boolean;
 search?: string;
+};
+
+export type ListAppointmentsByEmailParams = {
+email: string;
 };
 

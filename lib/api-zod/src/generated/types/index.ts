@@ -8,12 +8,14 @@
 
 export * from './appointment';
 export * from './appointmentInput';
+export * from './appointmentWithClinic';
 export * from './clinic';
 export * from './clinicsSummary';
 export * from './doctor';
 export * from './errorResponse';
 export * from './healthStatus';
 export * from './insurancePlan';
+export * from './listAppointmentsByEmailParams';
 export * from './listClinicsParams';
 export * from './review';
 export * from './reviewInput';

@@ -22,12 +22,14 @@ import type {
 import type {
   Appointment,
   AppointmentInput,
+  AppointmentWithClinic,
   Clinic,
   ClinicsSummary,
   Doctor,
   ErrorResponse,
   HealthStatus,
   InsurancePlan,
+  ListAppointmentsByEmailParams,
   ListClinicsParams,
   Review,
   ReviewInput
@@ -830,6 +832,90 @@ export const useBookAppointment = <TError = ErrorType<ErrorResponse>,
       > => {
       return useMutation(getBookAppointmentMutationOptions(options));
     }
+
+export const getListAppointmentsByEmailUrl = (params: ListAppointmentsByEmailParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/appointments?${stringifiedParams}` : `/api/appointments`
+}
+
+/**
+ * @summary List appointments booked by a patient email
+ */
+export const listAppointmentsByEmail = async (params: ListAppointmentsByEmailParams, options?: RequestInit): Promise<AppointmentWithClinic[]> => {
+
+  return customFetch<AppointmentWithClinic[]>(getListAppointmentsByEmailUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAppointmentsByEmailQueryKey = (params?: ListAppointmentsByEmailParams,) => {
+    return [
+    `/api/appointments`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAppointmentsByEmailQueryOptions = <TData = Awaited<ReturnType<typeof listAppointmentsByEmail>>, TError = ErrorType<unknown>>(params: ListAppointmentsByEmailParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAppointmentsByEmail>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAppointmentsByEmailQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAppointmentsByEmail>>> = ({ signal }) => listAppointmentsByEmail(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAppointmentsByEmail>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAppointmentsByEmailQueryResult = NonNullable<Awaited<ReturnType<typeof listAppointmentsByEmail>>>
+export type ListAppointmentsByEmailQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List appointments booked by a patient email
+ */
+
+export function useListAppointmentsByEmail<TData = Awaited<ReturnType<typeof listAppointmentsByEmail>>, TError = ErrorType<unknown>>(
+ params: ListAppointmentsByEmailParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAppointmentsByEmail>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAppointmentsByEmailQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListInsurancePlansUrl = () => {
 

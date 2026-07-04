@@ -1,9 +1,47 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
-import { db, doctorsTable, appointmentsTable } from "@workspace/db";
-import { BookAppointmentParams, BookAppointmentBody, BookAppointmentResponse } from "@workspace/api-zod";
+import { eq, desc } from "drizzle-orm";
+import { db, doctorsTable, appointmentsTable, clinicsTable } from "@workspace/db";
+import {
+  BookAppointmentParams,
+  BookAppointmentBody,
+  BookAppointmentResponse,
+  ListAppointmentsByEmailQueryParams,
+  ListAppointmentsByEmailResponseItem,
+} from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+router.get("/appointments", async (req, res): Promise<void> => {
+  const query = ListAppointmentsByEmailQueryParams.safeParse(req.query);
+  if (!query.success) {
+    res.status(400).json({ error: query.error.message });
+    return;
+  }
+
+  const rows = await db
+    .select({
+      id: appointmentsTable.id,
+      clinicId: appointmentsTable.clinicId,
+      clinicName: clinicsTable.name,
+      clinicNeighborhood: clinicsTable.neighborhood,
+      doctorId: appointmentsTable.doctorId,
+      doctorName: doctorsTable.name,
+      patientName: appointmentsTable.patientName,
+      patientEmail: appointmentsTable.patientEmail,
+      patientPhone: appointmentsTable.patientPhone,
+      notes: appointmentsTable.notes,
+      appointmentAt: appointmentsTable.appointmentAt,
+      status: appointmentsTable.status,
+      createdAt: appointmentsTable.createdAt,
+    })
+    .from(appointmentsTable)
+    .innerJoin(clinicsTable, eq(appointmentsTable.clinicId, clinicsTable.id))
+    .innerJoin(doctorsTable, eq(appointmentsTable.doctorId, doctorsTable.id))
+    .where(eq(appointmentsTable.patientEmail, query.data.email))
+    .orderBy(desc(appointmentsTable.appointmentAt));
+
+  res.json(rows.map((row) => ListAppointmentsByEmailResponseItem.parse(row)));
+});
 
 router.post("/clinics/:id/doctors/:doctorId/appointments", async (req, res): Promise<void> => {
   const params = BookAppointmentParams.safeParse(req.params);

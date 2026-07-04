@@ -216,6 +216,31 @@ export const BookAppointmentResponse = zod.object({
 
 
 /**
+ * @summary List appointments booked by a patient email
+ */
+export const ListAppointmentsByEmailQueryParams = zod.object({
+  "email": zod.coerce.string().email()
+})
+
+export const ListAppointmentsByEmailResponseItem = zod.object({
+  "id": zod.number(),
+  "clinicId": zod.number(),
+  "clinicName": zod.string(),
+  "clinicNeighborhood": zod.string(),
+  "doctorId": zod.number(),
+  "doctorName": zod.string(),
+  "patientName": zod.string(),
+  "patientEmail": zod.string(),
+  "patientPhone": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "appointmentAt": zod.coerce.date(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const ListAppointmentsByEmailResponse = zod.array(ListAppointmentsByEmailResponseItem)
+
+
+/**
  * @summary List NYU student health insurance plan info
  */
 export const ListInsurancePlansResponseItem = zod.object({

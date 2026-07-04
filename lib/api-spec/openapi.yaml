@@ -246,6 +246,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /appointments:
+    get:
+      operationId: listAppointmentsByEmail
+      tags: [clinics]
+      summary: List appointments booked by a patient email
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        "200":
+          description: List of appointments, soonest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AppointmentWithClinic"
   /insurance-plans:
     get:
       operationId: listInsurancePlans
@@ -465,6 +486,51 @@ components:
           type: integer
         clinicId:
           type: integer
+        doctorId:
+          type: integer
+        doctorName:
+          type: string
+        patientName:
+          type: string
+        patientEmail:
+          type: string
+        patientPhone:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        appointmentAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    AppointmentWithClinic:
+      type: object
+      required:
+        - id
+        - clinicId
+        - clinicName
+        - clinicNeighborhood
+        - doctorId
+        - doctorName
+        - patientName
+        - patientEmail
+        - appointmentAt
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+        clinicId:
+          type: integer
+        clinicName:
+          type: string
+        clinicNeighborhood:
+          type: string
         doctorId:
           type: integer
         doctorName:

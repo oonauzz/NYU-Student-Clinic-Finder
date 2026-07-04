@@ -11,6 +11,7 @@ export function Navbar() {
     { href: "/", label: "Home" },
     { href: "/clinics", label: "Find a Clinic" },
     { href: "/insurance", label: "Insurance Info" },
+    { href: "/my-appointments", label: "My Appointments" },
   ];
 
   return (
