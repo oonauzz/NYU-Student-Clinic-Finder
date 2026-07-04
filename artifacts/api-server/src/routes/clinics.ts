@@ -129,7 +129,7 @@ router.get("/clinics", async (req, res): Promise<void> => {
     return;
   }
 
-  const { specialty, borough, neighborhood, acceptsNyuInsurance, search } = query.data;
+  const { specialty, borough, neighborhood, acceptsNyuInsurance, insurancePlanId, search } = query.data;
 
   const conditions = [];
   if (specialty) {
@@ -149,6 +149,15 @@ router.get("/clinics", async (req, res): Promise<void> => {
     conditions.push(
       or(ilike(clinicsTable.name, term), ilike(clinicsTable.specialty, term)),
     );
+  }
+
+  if (insurancePlanId !== undefined) {
+    const matchingClinicIds = await db
+      .select({ clinicId: clinicInsurancePlansTable.clinicId })
+      .from(clinicInsurancePlansTable)
+      .where(eq(clinicInsurancePlansTable.insurancePlanId, insurancePlanId));
+    const ids = matchingClinicIds.map((r) => r.clinicId);
+    conditions.push(ids.length > 0 ? inArray(clinicsTable.id, ids) : inArray(clinicsTable.id, [-1]));
   }
 
   const clinics = await db

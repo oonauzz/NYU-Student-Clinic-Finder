@@ -11,5 +11,9 @@ specialty?: string;
 borough?: string;
 neighborhood?: string;
 acceptsNyuInsurance?: boolean;
+/**
+ * Filter to clinics that accept this specific insurance plan
+ */
+insurancePlanId?: number;
 search?: string;
 };

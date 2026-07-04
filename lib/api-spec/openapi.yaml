@@ -55,6 +55,12 @@ paths:
           required: false
           schema:
             type: boolean
+        - name: insurancePlanId
+          in: query
+          required: false
+          description: Filter to clinics that accept this specific insurance plan
+          schema:
+            type: integer
         - name: search
           in: query
           required: false

@@ -26,6 +26,7 @@ export const ListClinicsQueryParams = zod.object({
   "borough": zod.coerce.string().optional(),
   "neighborhood": zod.coerce.string().optional(),
   "acceptsNyuInsurance": zod.coerce.boolean().optional(),
+  "insurancePlanId": zod.coerce.number().optional().describe('Filter to clinics that accept this specific insurance plan'),
   "search": zod.coerce.string().optional()
 })
 

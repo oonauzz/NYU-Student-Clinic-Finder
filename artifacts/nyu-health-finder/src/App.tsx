@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Clinics from "@/pages/clinics";
 import ClinicDetail from "@/pages/clinic-detail";
+import Compare from "@/pages/compare";
 import Insurance from "@/pages/insurance";
 import MyAppointments from "@/pages/my-appointments";
 import { Layout } from "@/components/layout/Layout";
@@ -19,6 +20,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/clinics" component={Clinics} />
+        <Route path="/compare" component={Compare} />
         <Route path="/clinics/:id" component={ClinicDetail} />
         <Route path="/insurance" component={Insurance} />
         <Route path="/my-appointments" component={MyAppointments} />
