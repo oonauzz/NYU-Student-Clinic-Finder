@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './appointment';
+export * from './appointmentInput';
 export * from './clinic';
 export * from './clinicsSummary';
 export * from './doctor';

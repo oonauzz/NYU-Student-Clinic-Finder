@@ -90,6 +90,35 @@ export interface InsurancePlan {
   annualPremium: number;
   waivable: boolean;
   keyBenefits: string[];
+  /** True if this is an official NYU-billed plan; false for popular alternative plans students carry instead */
+  isNyuPlan: boolean;
+}
+
+export interface Appointment {
+  id: number;
+  clinicId: number;
+  doctorId: number;
+  doctorName: string;
+  patientName: string;
+  patientEmail: string;
+  patientPhone?: string | null;
+  notes?: string | null;
+  appointmentAt: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface AppointmentInput {
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  patientName: string;
+  patientEmail: string;
+  /** @maxLength 40 */
+  patientPhone?: string | null;
+  /** @maxLength 500 */
+  notes?: string | null;
 }
 
 export type ListClinicsParams = {

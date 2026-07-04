@@ -20,6 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  Appointment,
+  AppointmentInput,
   Clinic,
   ClinicsSummary,
   Doctor,
@@ -754,6 +756,79 @@ export const useCreateClinicReview = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getCreateClinicReviewMutationOptions(options));
+    }
+
+export const getBookAppointmentUrl = (id: number,
+    doctorId: number,) => {
+
+
+
+
+  return `/api/clinics/${id}/doctors/${doctorId}/appointments`
+}
+
+/**
+ * @summary Book an appointment with a doctor at their next available slot
+ */
+export const bookAppointment = async (id: number,
+    doctorId: number,
+    appointmentInput: AppointmentInput, options?: RequestInit): Promise<Appointment> => {
+
+  return customFetch<Appointment>(getBookAppointmentUrl(id,doctorId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(appointmentInput)
+  }
+);}
+
+
+
+
+export const getBookAppointmentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bookAppointment>>, TError,{id: number;doctorId: number;data: BodyType<AppointmentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof bookAppointment>>, TError,{id: number;doctorId: number;data: BodyType<AppointmentInput>}, TContext> => {
+
+const mutationKey = ['bookAppointment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bookAppointment>>, {id: number;doctorId: number;data: BodyType<AppointmentInput>}> = (props) => {
+          const {id,doctorId,data} = props ?? {};
+
+          return  bookAppointment(id,doctorId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BookAppointmentMutationResult = NonNullable<Awaited<ReturnType<typeof bookAppointment>>>
+    export type BookAppointmentMutationBody = BodyType<AppointmentInput>
+    export type BookAppointmentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Book an appointment with a doctor at their next available slot
+ */
+export const useBookAppointment = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bookAppointment>>, TError,{id: number;doctorId: number;data: BodyType<AppointmentInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof bookAppointment>>,
+        TError,
+        {id: number;doctorId: number;data: BodyType<AppointmentInput>},
+        TContext
+      > => {
+      return useMutation(getBookAppointmentMutationOptions(options));
     }
 
 export const getListInsurancePlansUrl = () => {

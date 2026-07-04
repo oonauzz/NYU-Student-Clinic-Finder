@@ -1,6 +1,14 @@
 import { useRoute, Link } from "wouter";
 import { useState } from "react";
-import { useGetClinic, useListClinicDoctors, useListClinicReviews, useCreateClinicReview, getListClinicReviewsQueryKey } from "@workspace/api-client-react";
+import {
+  useGetClinic,
+  useListClinicDoctors,
+  useListClinicReviews,
+  useCreateClinicReview,
+  useBookAppointment,
+  getListClinicReviewsQueryKey,
+  getListClinicDoctorsQueryKey,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -27,7 +36,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { MapPin, Clock, Star, Phone, ShieldCheck, DoorOpen, Navigation, ArrowLeft, AlertCircle, Calendar, User, MessageSquare, Plus } from "lucide-react";
+import { MapPin, Clock, Star, Phone, ShieldCheck, DoorOpen, Navigation, ArrowLeft, AlertCircle, Calendar, User, MessageSquare, Plus, CalendarCheck } from "lucide-react";
 import { format, isToday, isTomorrow, isThisYear, parseISO, differenceInDays } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,6 +51,16 @@ const reviewSchema = z.object({
 });
 
 type ReviewFormValues = z.infer<typeof reviewSchema>;
+
+const bookingSchema = z.object({
+  doctorId: z.string().min(1, "Please select a doctor"),
+  patientName: z.string().min(1, "Name is required"),
+  patientEmail: z.string().email("Enter a valid email"),
+  patientPhone: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+type BookingFormValues = z.infer<typeof bookingSchema>;
 
 function formatNextAvailable(dateString: string) {
   const date = parseISO(dateString);
@@ -72,6 +91,8 @@ export default function ClinicDetail() {
   const id = params?.id ? parseInt(params.id, 10) : 0;
   const queryClient = useQueryClient();
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [confirmedAppointment, setConfirmedAppointment] = useState<{ doctorName: string; appointmentAt: string } | null>(null);
   
   const { data: clinic, isLoading: isLoadingClinic, isError: isErrorClinic } = useGetClinic(id);
   const { data: doctors, isLoading: isLoadingDoctors } = useListClinicDoctors(id);
@@ -91,6 +112,20 @@ export default function ClinicDetail() {
     }
   });
 
+  const bookAppointmentMutation = useBookAppointment({
+    mutation: {
+      onSuccess: (appointment) => {
+        queryClient.invalidateQueries({ queryKey: getListClinicDoctorsQueryKey(id) });
+        setConfirmedAppointment({ doctorName: appointment.doctorName, appointmentAt: appointment.appointmentAt as unknown as string });
+        toast.success("Appointment booked!");
+        bookingForm.reset();
+      },
+      onError: () => {
+        toast.error("Failed to book appointment. Please try again.");
+      }
+    }
+  });
+
   const form = useForm<ReviewFormValues>({
     resolver: zodResolver(reviewSchema),
     defaultValues: {
@@ -101,8 +136,44 @@ export default function ClinicDetail() {
     },
   });
 
+  const bookingForm = useForm<BookingFormValues>({
+    resolver: zodResolver(bookingSchema),
+    defaultValues: {
+      doctorId: "",
+      patientName: "",
+      patientEmail: "",
+      patientPhone: "",
+      notes: "",
+    },
+  });
+
   const onSubmit = (data: ReviewFormValues) => {
     createReviewMutation.mutate({ id, data });
+  };
+
+  const onBookSubmit = (data: BookingFormValues) => {
+    bookAppointmentMutation.mutate({
+      id,
+      doctorId: parseInt(data.doctorId, 10),
+      data: {
+        patientName: data.patientName,
+        patientEmail: data.patientEmail,
+        patientPhone: data.patientPhone || undefined,
+        notes: data.notes || undefined,
+      },
+    });
+  };
+
+  const openBookingDialog = (doctorId?: number) => {
+    setConfirmedAppointment(null);
+    bookingForm.reset({
+      doctorId: doctorId ? String(doctorId) : doctors?.[0] ? String(doctors[0].id) : "",
+      patientName: "",
+      patientEmail: "",
+      patientPhone: "",
+      notes: "",
+    });
+    setIsBookingDialogOpen(true);
   };
 
   if (isLoadingClinic) {
@@ -190,7 +261,11 @@ export default function ClinicDetail() {
                   <span className="text-xl font-medium">days</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-6">Compared to ~21 days at NYU Health Center</p>
-                <Button className="w-full h-12 text-md rounded-xl shadow-sm">
+                <Button
+                  className="w-full h-12 text-md rounded-xl shadow-sm"
+                  disabled={isLoadingDoctors || !doctors?.length}
+                  onClick={() => openBookingDialog()}
+                >
                   Book Appointment
                 </Button>
                 {clinic.walkInAvailable && (
@@ -254,12 +329,135 @@ export default function ClinicDetail() {
                           <Calendar className="h-4 w-4" />
                           <span>Next: {formatNextAvailable(doctor.nextAvailableAt)}</span>
                         </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-lg shrink-0"
+                          onClick={() => openBookingDialog(doctor.id)}
+                        >
+                          Book
+                        </Button>
                       </CardContent>
                     </Card>
                   ))
                 )}
               </div>
             </section>
+
+            <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
+              <DialogContent className="sm:max-w-[500px]">
+                {confirmedAppointment ? (
+                  <div className="py-4 text-center">
+                    <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 mb-4">
+                      <CalendarCheck className="h-7 w-7" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">Appointment confirmed!</h3>
+                    <p className="text-muted-foreground mb-6">
+                      You're booked with <span className="font-medium text-foreground">{confirmedAppointment.doctorName}</span> at{" "}
+                      <span className="font-medium text-foreground">{clinic.name}</span> on{" "}
+                      <span className="font-medium text-foreground">{formatNextAvailable(confirmedAppointment.appointmentAt)}</span>.
+                    </p>
+                    <Button className="w-full" onClick={() => setIsBookingDialogOpen(false)}>
+                      Done
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle>Book an appointment</DialogTitle>
+                      <DialogDescription>
+                        Reserve the doctor's next available slot at {clinic.name}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Form {...bookingForm}>
+                      <form onSubmit={bookingForm.handleSubmit(onBookSubmit)} className="space-y-4 py-2">
+                        <FormField
+                          control={bookingForm.control}
+                          name="doctorId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Doctor</FormLabel>
+                              <Select value={field.value} onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a doctor" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {doctors?.map((doctor) => (
+                                    <SelectItem key={doctor.id} value={String(doctor.id)}>
+                                      {doctor.name} — Next: {formatNextAvailable(doctor.nextAvailableAt)}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={bookingForm.control}
+                          name="patientName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Your name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your full name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={bookingForm.control}
+                          name="patientEmail"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="you@nyu.edu" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={bookingForm.control}
+                          name="patientPhone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone (optional)</FormLabel>
+                              <FormControl>
+                                <Input type="tel" placeholder="(555) 555-5555" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={bookingForm.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Reason for visit (optional)</FormLabel>
+                              <FormControl>
+                                <Textarea placeholder="Briefly describe why you'd like to be seen" className="min-h-[80px]" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <DialogFooter className="pt-4">
+                          <Button type="submit" className="w-full sm:w-auto" disabled={bookAppointmentMutation.isPending}>
+                            {bookAppointmentMutation.isPending ? "Booking..." : "Confirm Booking"}
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </>
+                )}
+              </DialogContent>
+            </Dialog>
 
             <section>
               <div className="flex items-center justify-between mb-4">

@@ -13,4 +13,6 @@ export interface InsurancePlan {
   annualPremium: number;
   waivable: boolean;
   keyBenefits: string[];
+  /** True if this is an official NYU-billed plan; false for popular alternative plans students carry instead */
+  isNyuPlan: boolean;
 }

@@ -205,6 +205,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /clinics/{id}/doctors/{doctorId}/appointments:
+    post:
+      operationId: bookAppointment
+      tags: [clinics]
+      summary: Book an appointment with a doctor at their next available slot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: doctorId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentInput"
+      responses:
+        "201":
+          description: Booked appointment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Clinic or doctor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /insurance-plans:
     get:
       operationId: listInsurancePlans
@@ -388,6 +429,7 @@ components:
         - annualPremium
         - waivable
         - keyBenefits
+        - isNyuPlan
       properties:
         id:
           type: integer
@@ -403,4 +445,67 @@ components:
           type: array
           items:
             type: string
+        isNyuPlan:
+          type: boolean
+          description: True if this is an official NYU-billed plan; false for popular alternative plans students carry instead
+    Appointment:
+      type: object
+      required:
+        - id
+        - clinicId
+        - doctorId
+        - doctorName
+        - patientName
+        - patientEmail
+        - appointmentAt
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+        clinicId:
+          type: integer
+        doctorId:
+          type: integer
+        doctorName:
+          type: string
+        patientName:
+          type: string
+        patientEmail:
+          type: string
+        patientPhone:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        appointmentAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    AppointmentInput:
+      type: object
+      required:
+        - patientName
+        - patientEmail
+      properties:
+        patientName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        patientEmail:
+          type: string
+          format: email
+        patientPhone:
+          type: string
+          nullable: true
+          maxLength: 40
+        notes:
+          type: string
+          nullable: true
+          maxLength: 500
 

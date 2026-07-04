@@ -1,6 +1,7 @@
 import { useListInsurancePlans } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Shield, CheckCircle2, AlertCircle, HelpCircle, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -45,7 +46,7 @@ export default function Insurance() {
           </Card>
         </div>
 
-        <h2 className="text-2xl font-bold mb-6">Available Plans (2023-2024)</h2>
+        <h2 className="text-2xl font-bold mb-6">NYU Plans (2023-2024)</h2>
         
         {isLoading ? (
           <div className="space-y-6">
@@ -62,49 +63,101 @@ export default function Insurance() {
             ))}
           </div>
         ) : (
-          <div className="space-y-6 mb-12">
-            {plans?.map((plan) => (
-              <Card key={plan.id} className="overflow-hidden border-border/60 shadow-sm hover:shadow-md transition-shadow">
-                <div className={`h-2 w-full ${plan.name.includes("Comprehensive") ? "bg-primary" : "bg-muted-foreground/30"}`} />
-                <CardHeader className="pb-4">
-                  <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+          <>
+            <div className="space-y-6 mb-12">
+              {plans?.filter(p => p.isNyuPlan).map((plan) => (
+                <Card key={plan.id} className="overflow-hidden border-border/60 shadow-sm hover:shadow-md transition-shadow">
+                  <div className={`h-2 w-full ${plan.name.includes("Comprehensive") ? "bg-primary" : "bg-muted-foreground/30"}`} />
+                  <CardHeader className="pb-4">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                      <div>
+                        <CardTitle className="text-2xl mb-1">{plan.name}</CardTitle>
+                        <CardDescription className="text-base">{plan.description}</CardDescription>
+                      </div>
+                      <div className="text-left md:text-right shrink-0">
+                        <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider mb-1">Annual Premium</div>
+                        <div className="text-3xl font-bold">${plan.annualPremium.toLocaleString()}</div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-secondary/30 rounded-xl p-5 mb-6">
+                      <h4 className="font-semibold mb-3 flex items-center">
+                        <Shield className="mr-2 h-4 w-4 text-primary" /> Key Benefits
+                      </h4>
+                      <ul className="grid sm:grid-cols-2 gap-2">
+                        {plan.keyBenefits.map((benefit, i) => (
+                          <li key={i} className="flex items-start">
+                            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5 shrink-0" />
+                            <span className="text-sm">{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div className="flex items-center text-sm">
+                      <Info className="h-4 w-4 text-muted-foreground mr-2 shrink-0" />
+                      <span className="text-muted-foreground">
+                        {plan.waivable 
+                          ? "This plan is automatically charged to your bursar bill, but can be waived if you have comparable coverage." 
+                          : "This plan is optional and must be actively enrolled in."}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold mb-1">Popular Alternative Plans</h2>
+              <p className="text-muted-foreground mb-6">
+                Many NYU students waive SHIP using one of these plans instead. Here's what's most common on campus.
+              </p>
+              <div className="grid md:grid-cols-3 gap-6">
+                {plans?.filter(p => !p.isNyuPlan && p.waivable === false).map((plan) => (
+                  <Card key={plan.id} className="border-border/60 shadow-sm hover:shadow-md transition-shadow">
+                    <CardHeader className="pb-2">
+                      <Badge variant="outline" className="w-fit mb-2 font-normal text-muted-foreground">Alternative Plan</Badge>
+                      <CardTitle className="text-lg">{plan.name}</CardTitle>
+                      <CardDescription>{plan.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-4">
+                        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">
+                          {plan.annualPremium > 0 ? "Typical Annual Cost" : "Cost to Student"}
+                        </div>
+                        <div className="text-2xl font-bold">
+                          {plan.annualPremium > 0 ? `$${plan.annualPremium.toLocaleString()}` : "Often $0 (via parent/employer)"}
+                        </div>
+                      </div>
+                      <ul className="space-y-1.5">
+                        {plan.keyBenefits.map((benefit, i) => (
+                          <li key={i} className="flex items-start text-sm">
+                            <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5 shrink-0" />
+                            <span>{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-12">
+              {plans?.filter(p => !p.isNyuPlan && p.waivable === true).map((plan) => (
+                <Card key={plan.id} className="bg-secondary/20 border-dashed">
+                  <CardContent className="p-6 flex items-start gap-4">
+                    <Info className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
                     <div>
-                      <CardTitle className="text-2xl mb-1">{plan.name}</CardTitle>
-                      <CardDescription className="text-base">{plan.description}</CardDescription>
+                      <h4 className="font-semibold mb-1">{plan.name}</h4>
+                      <p className="text-muted-foreground text-sm">{plan.description}</p>
                     </div>
-                    <div className="text-left md:text-right shrink-0">
-                      <div className="text-sm text-muted-foreground font-medium uppercase tracking-wider mb-1">Annual Premium</div>
-                      <div className="text-3xl font-bold">${plan.annualPremium.toLocaleString()}</div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-secondary/30 rounded-xl p-5 mb-6">
-                    <h4 className="font-semibold mb-3 flex items-center">
-                      <Shield className="mr-2 h-4 w-4 text-primary" /> Key Benefits
-                    </h4>
-                    <ul className="grid sm:grid-cols-2 gap-2">
-                      {plan.keyBenefits.map((benefit, i) => (
-                        <li key={i} className="flex items-start">
-                          <CheckCircle2 className="h-4 w-4 text-green-500 mr-2 mt-0.5 shrink-0" />
-                          <span className="text-sm">{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div className="flex items-center text-sm">
-                    <Info className="h-4 w-4 text-muted-foreground mr-2 shrink-0" />
-                    <span className="text-muted-foreground">
-                      {plan.waivable 
-                        ? "This plan is automatically charged to your bursar bill, but can be waived if you have comparable coverage." 
-                        : "This plan is optional and must be actively enrolled in."}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
         )}
 
         <h2 className="text-2xl font-bold mb-6">Common Questions</h2>

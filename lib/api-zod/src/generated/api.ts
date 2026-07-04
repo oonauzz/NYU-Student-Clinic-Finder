@@ -178,6 +178,44 @@ export const CreateClinicReviewResponse = zod.object({
 
 
 /**
+ * @summary Book an appointment with a doctor at their next available slot
+ */
+export const BookAppointmentParams = zod.object({
+  "id": zod.coerce.number(),
+  "doctorId": zod.coerce.number()
+})
+
+export const bookAppointmentBodyPatientNameMax = 120;
+
+export const bookAppointmentBodyPatientPhoneMax = 40;
+
+export const bookAppointmentBodyNotesMax = 500;
+
+
+
+export const BookAppointmentBody = zod.object({
+  "patientName": zod.string().min(1).max(bookAppointmentBodyPatientNameMax),
+  "patientEmail": zod.string().email(),
+  "patientPhone": zod.string().max(bookAppointmentBodyPatientPhoneMax).nullish(),
+  "notes": zod.string().max(bookAppointmentBodyNotesMax).nullish()
+})
+
+export const BookAppointmentResponse = zod.object({
+  "id": zod.number(),
+  "clinicId": zod.number(),
+  "doctorId": zod.number(),
+  "doctorName": zod.string(),
+  "patientName": zod.string(),
+  "patientEmail": zod.string(),
+  "patientPhone": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "appointmentAt": zod.coerce.date(),
+  "status": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary List NYU student health insurance plan info
  */
 export const ListInsurancePlansResponseItem = zod.object({
@@ -186,7 +224,8 @@ export const ListInsurancePlansResponseItem = zod.object({
   "description": zod.string(),
   "annualPremium": zod.number(),
   "waivable": zod.boolean(),
-  "keyBenefits": zod.array(zod.string())
+  "keyBenefits": zod.array(zod.string()),
+  "isNyuPlan": zod.boolean().describe('True if this is an official NYU-billed plan; false for popular alternative plans students carry instead')
 })
 export const ListInsurancePlansResponse = zod.array(ListInsurancePlansResponseItem)
 

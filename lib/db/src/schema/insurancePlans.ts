@@ -9,6 +9,7 @@ export const insurancePlansTable = pgTable("insurance_plans", {
   annualPremium: real("annual_premium").notNull(),
   waivable: boolean("waivable").notNull().default(true),
   keyBenefits: text("key_benefits").array().notNull(),
+  isNyuPlan: boolean("is_nyu_plan").notNull().default(false),
 });
 
 export const insertInsurancePlanSchema = createInsertSchema(insurancePlansTable).omit({ id: true });
