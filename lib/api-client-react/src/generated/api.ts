@@ -23,6 +23,7 @@ import type {
   Appointment,
   AppointmentInput,
   AppointmentWithClinic,
+  BoroughGroup,
   Clinic,
   ClinicsSummary,
   Doctor,
@@ -522,6 +523,83 @@ export function useListNeighborhoods<TData = Awaited<ReturnType<typeof listNeigh
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListNeighborhoodsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListBoroughsUrl = () => {
+
+
+
+
+  return `/api/clinics/boroughs`
+}
+
+/**
+ * @summary List boroughs with their neighborhoods, for a StreetEasy-style drill-down location filter
+ */
+export const listBoroughs = async ( options?: RequestInit): Promise<BoroughGroup[]> => {
+
+  return customFetch<BoroughGroup[]>(getListBoroughsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListBoroughsQueryKey = () => {
+    return [
+    `/api/clinics/boroughs`
+    ] as const;
+    }
+
+
+export const getListBoroughsQueryOptions = <TData = Awaited<ReturnType<typeof listBoroughs>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBoroughs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListBoroughsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listBoroughs>>> = ({ signal }) => listBoroughs({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listBoroughs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListBoroughsQueryResult = NonNullable<Awaited<ReturnType<typeof listBoroughs>>>
+export type ListBoroughsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List boroughs with their neighborhoods, for a StreetEasy-style drill-down location filter
+ */
+
+export function useListBoroughs<TData = Awaited<ReturnType<typeof listBoroughs>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listBoroughs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListBoroughsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -23,6 +23,7 @@ export const HealthCheckResponse = zod.object({
  */
 export const ListClinicsQueryParams = zod.object({
   "specialty": zod.coerce.string().optional(),
+  "borough": zod.coerce.string().optional(),
   "neighborhood": zod.coerce.string().optional(),
   "acceptsNyuInsurance": zod.coerce.boolean().optional(),
   "search": zod.coerce.string().optional()
@@ -32,6 +33,7 @@ export const ListClinicsResponseItem = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "specialty": zod.string(),
+  "borough": zod.string().describe('One of Manhattan, Brooklyn, Queens'),
   "neighborhood": zod.string(),
   "address": zod.string(),
   "phone": zod.string(),
@@ -41,7 +43,17 @@ export const ListClinicsResponseItem = zod.object({
   "distanceFromCampusMiles": zod.number(),
   "hours": zod.string(),
   "notes": zod.string(),
-  "walkInAvailable": zod.boolean()
+  "walkInAvailable": zod.boolean(),
+  "isNyuHealthCenter": zod.boolean().describe('True for the official NYU Student Health Center, so students can compare it against off-campus options'),
+  "acceptedInsurancePlans": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "annualPremium": zod.number(),
+  "waivable": zod.boolean(),
+  "keyBenefits": zod.array(zod.string()),
+  "isNyuPlan": zod.boolean().describe('True if this is an official NYU-billed plan; false for popular alternative plans students carry instead')
+}))
 })
 export const ListClinicsResponse = zod.array(ListClinicsResponseItem)
 
@@ -57,6 +69,7 @@ export const GetClinicResponse = zod.object({
   "id": zod.number(),
   "name": zod.string(),
   "specialty": zod.string(),
+  "borough": zod.string().describe('One of Manhattan, Brooklyn, Queens'),
   "neighborhood": zod.string(),
   "address": zod.string(),
   "phone": zod.string(),
@@ -66,7 +79,17 @@ export const GetClinicResponse = zod.object({
   "distanceFromCampusMiles": zod.number(),
   "hours": zod.string(),
   "notes": zod.string(),
-  "walkInAvailable": zod.boolean()
+  "walkInAvailable": zod.boolean(),
+  "isNyuHealthCenter": zod.boolean().describe('True for the official NYU Student Health Center, so students can compare it against off-campus options'),
+  "acceptedInsurancePlans": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "annualPremium": zod.number(),
+  "waivable": zod.boolean(),
+  "keyBenefits": zod.array(zod.string()),
+  "isNyuPlan": zod.boolean().describe('True if this is an official NYU-billed plan; false for popular alternative plans students carry instead')
+}))
 })
 
 
@@ -100,6 +123,17 @@ export const ListNeighborhoodsResponse = zod.array(ListNeighborhoodsResponseItem
 
 
 /**
+ * @summary List boroughs with their neighborhoods, for a StreetEasy-style drill-down location filter
+ */
+export const ListBoroughsResponseItem = zod.object({
+  "borough": zod.string(),
+  "neighborhoods": zod.array(zod.string()),
+  "clinicCount": zod.number()
+})
+export const ListBoroughsResponse = zod.array(ListBoroughsResponseItem)
+
+
+/**
  * Returns doctors at this clinic, ordered from earliest to latest next available appointment
  * @summary List doctors at a clinic
  */
@@ -112,7 +146,8 @@ export const ListClinicDoctorsResponseItem = zod.object({
   "clinicId": zod.number(),
   "name": zod.string(),
   "title": zod.string().describe('e.g. \"MD, Family Medicine\"'),
-  "nextAvailableAt": zod.coerce.date().describe('Soonest open appointment slot for this doctor')
+  "nextAvailableAt": zod.coerce.date().describe('Soonest open appointment slot for this doctor'),
+  "imageUrl": zod.string().describe('Headshot photo URL for this doctor')
 })
 export const ListClinicDoctorsResponse = zod.array(ListClinicDoctorsResponseItem)
 

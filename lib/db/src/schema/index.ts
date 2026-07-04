@@ -22,3 +22,4 @@ export * from "./insurancePlans";
 export * from "./doctors";
 export * from "./clinicReviews";
 export * from "./appointments";
+export * from "./clinicInsurancePlans";

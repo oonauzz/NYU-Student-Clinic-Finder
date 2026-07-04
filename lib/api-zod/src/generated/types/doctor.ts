@@ -14,4 +14,6 @@ export interface Doctor {
   title: string;
   /** Soonest open appointment slot for this doctor */
   nextAvailableAt: Date;
+  /** Headshot photo URL for this doctor */
+  imageUrl: string;
 }

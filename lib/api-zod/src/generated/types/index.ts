@@ -9,6 +9,7 @@
 export * from './appointment';
 export * from './appointmentInput';
 export * from './appointmentWithClinic';
+export * from './boroughGroup';
 export * from './clinic';
 export * from './clinicsSummary';
 export * from './doctor';

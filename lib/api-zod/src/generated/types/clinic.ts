@@ -5,11 +5,14 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { InsurancePlan } from './insurancePlan';
 
 export interface Clinic {
   id: number;
   name: string;
   specialty: string;
+  /** One of Manhattan, Brooklyn, Queens */
+  borough: string;
   neighborhood: string;
   address: string;
   phone: string;
@@ -21,4 +24,7 @@ export interface Clinic {
   hours: string;
   notes: string;
   walkInAvailable: boolean;
+  /** True for the official NYU Student Health Center, so students can compare it against off-campus options */
+  isNyuHealthCenter: boolean;
+  acceptedInsurancePlans: InsurancePlan[];
 }

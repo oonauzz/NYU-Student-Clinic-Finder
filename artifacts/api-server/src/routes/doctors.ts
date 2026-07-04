@@ -18,7 +18,12 @@ router.get("/clinics/:id/doctors", async (req, res): Promise<void> => {
     .where(eq(doctorsTable.clinicId, params.data.id))
     .orderBy(asc(doctorsTable.nextAvailableAt));
 
-  res.json(ListClinicDoctorsResponse.parse(doctors));
+  const withImages = doctors.map((doctor) => ({
+    ...doctor,
+    imageUrl: `https://i.pravatar.cc/300?u=doctor-${doctor.id}`,
+  }));
+
+  res.json(ListClinicDoctorsResponse.parse(withImages));
 });
 
 export default router;

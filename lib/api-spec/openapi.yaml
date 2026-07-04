@@ -40,6 +40,11 @@ paths:
           required: false
           schema:
             type: string
+        - name: borough
+          in: query
+          required: false
+          schema:
+            type: string
         - name: neighborhood
           in: query
           required: false
@@ -129,6 +134,20 @@ paths:
                 type: array
                 items:
                   type: string
+  /clinics/boroughs:
+    get:
+      operationId: listBoroughs
+      tags: [clinics]
+      summary: List boroughs with their neighborhoods, for a StreetEasy-style drill-down location filter
+      responses:
+        "200":
+          description: List of boroughs, each with its distinct neighborhoods and clinic count
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BoroughGroup"
   /clinics/{id}/doctors:
     get:
       operationId: listClinicDoctors
@@ -303,6 +322,7 @@ components:
         - id
         - name
         - specialty
+        - borough
         - neighborhood
         - address
         - phone
@@ -313,6 +333,8 @@ components:
         - hours
         - notes
         - walkInAvailable
+        - isNyuHealthCenter
+        - acceptedInsurancePlans
       properties:
         id:
           type: integer
@@ -320,6 +342,9 @@ components:
           type: string
         specialty:
           type: string
+        borough:
+          type: string
+          description: One of Manhattan, Brooklyn, Queens
         neighborhood:
           type: string
         address:
@@ -341,6 +366,28 @@ components:
           type: string
         walkInAvailable:
           type: boolean
+        isNyuHealthCenter:
+          type: boolean
+          description: True for the official NYU Student Health Center, so students can compare it against off-campus options
+        acceptedInsurancePlans:
+          type: array
+          items:
+            $ref: "#/components/schemas/InsurancePlan"
+    BoroughGroup:
+      type: object
+      required:
+        - borough
+        - neighborhoods
+        - clinicCount
+      properties:
+        borough:
+          type: string
+        neighborhoods:
+          type: array
+          items:
+            type: string
+        clinicCount:
+          type: integer
     ClinicsSummary:
       type: object
       required:
@@ -377,6 +424,7 @@ components:
         - name
         - title
         - nextAvailableAt
+        - imageUrl
       properties:
         id:
           type: integer
@@ -391,6 +439,9 @@ components:
           type: string
           format: date-time
           description: Soonest open appointment slot for this doctor
+        imageUrl:
+          type: string
+          description: Headshot photo URL for this doctor
     Review:
       type: object
       required:

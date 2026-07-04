@@ -8,6 +8,7 @@
 
 export type ListClinicsParams = {
 specialty?: string;
+borough?: string;
 neighborhood?: string;
 acceptsNyuInsurance?: boolean;
 search?: string;

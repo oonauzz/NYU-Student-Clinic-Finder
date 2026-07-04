@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { and, eq, ilike, or, sql } from "drizzle-orm";
-import { db, clinicsTable } from "@workspace/db";
+import { and, eq, ilike, or, inArray } from "drizzle-orm";
+import { db, clinicsTable, clinicInsurancePlansTable, insurancePlansTable, type Clinic } from "@workspace/db";
 import {
   ListClinicsQueryParams,
   ListClinicsResponse,
@@ -9,9 +9,40 @@ import {
   GetClinicsSummaryResponse,
   ListSpecialtiesResponse,
   ListNeighborhoodsResponse,
+  ListBoroughsResponse,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+async function attachInsurancePlans(clinics: Clinic[]) {
+  if (clinics.length === 0) return [];
+
+  const rows = await db
+    .select({
+      clinicId: clinicInsurancePlansTable.clinicId,
+      plan: insurancePlansTable,
+    })
+    .from(clinicInsurancePlansTable)
+    .innerJoin(insurancePlansTable, eq(clinicInsurancePlansTable.insurancePlanId, insurancePlansTable.id))
+    .where(
+      inArray(
+        clinicInsurancePlansTable.clinicId,
+        clinics.map((c) => c.id),
+      ),
+    );
+
+  const plansByClinic = new Map<number, typeof rows[number]["plan"][]>();
+  for (const row of rows) {
+    const list = plansByClinic.get(row.clinicId) ?? [];
+    list.push(row.plan);
+    plansByClinic.set(row.clinicId, list);
+  }
+
+  return clinics.map((clinic) => ({
+    ...clinic,
+    acceptedInsurancePlans: plansByClinic.get(clinic.id) ?? [],
+  }));
+}
 
 router.get("/clinics/summary", async (_req, res): Promise<void> => {
   const clinics = await db.select().from(clinicsTable);
@@ -63,6 +94,34 @@ router.get("/clinics/neighborhoods", async (_req, res): Promise<void> => {
   res.json(ListNeighborhoodsResponse.parse(rows.map((r) => r.neighborhood)));
 });
 
+router.get("/clinics/boroughs", async (_req, res): Promise<void> => {
+  const rows = await db
+    .select({ borough: clinicsTable.borough, neighborhood: clinicsTable.neighborhood })
+    .from(clinicsTable);
+
+  const boroughMap = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const set = boroughMap.get(row.borough) ?? new Set<string>();
+    set.add(row.neighborhood);
+    boroughMap.set(row.borough, set);
+  }
+
+  const boroughOrder = ["Manhattan", "Brooklyn", "Queens"];
+  const groups = Array.from(boroughMap.entries())
+    .map(([borough, neighborhoods]) => ({
+      borough,
+      neighborhoods: Array.from(neighborhoods).sort(),
+      clinicCount: rows.filter((r) => r.borough === borough).length,
+    }))
+    .sort((a, b) => {
+      const ai = boroughOrder.indexOf(a.borough);
+      const bi = boroughOrder.indexOf(b.borough);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
+
+  res.json(ListBoroughsResponse.parse(groups));
+});
+
 router.get("/clinics", async (req, res): Promise<void> => {
   const query = ListClinicsQueryParams.safeParse(req.query);
   if (!query.success) {
@@ -70,11 +129,14 @@ router.get("/clinics", async (req, res): Promise<void> => {
     return;
   }
 
-  const { specialty, neighborhood, acceptsNyuInsurance, search } = query.data;
+  const { specialty, borough, neighborhood, acceptsNyuInsurance, search } = query.data;
 
   const conditions = [];
   if (specialty) {
     conditions.push(eq(clinicsTable.specialty, specialty));
+  }
+  if (borough) {
+    conditions.push(eq(clinicsTable.borough, borough));
   }
   if (neighborhood) {
     conditions.push(eq(clinicsTable.neighborhood, neighborhood));
@@ -95,7 +157,9 @@ router.get("/clinics", async (req, res): Promise<void> => {
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(clinicsTable.averageWaitDays);
 
-  res.json(ListClinicsResponse.parse(clinics));
+  const withPlans = await attachInsurancePlans(clinics);
+
+  res.json(ListClinicsResponse.parse(withPlans));
 });
 
 router.get("/clinics/:id", async (req, res): Promise<void> => {
@@ -115,7 +179,9 @@ router.get("/clinics/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json(GetClinicResponse.parse(clinic));
+  const [withPlans] = await attachInsurancePlans([clinic]);
+
+  res.json(GetClinicResponse.parse(withPlans));
 });
 
 export default router;

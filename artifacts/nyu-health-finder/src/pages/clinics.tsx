@@ -1,30 +1,49 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { useListClinics, useListSpecialties, useListNeighborhoods } from "@workspace/api-client-react";
+import { useListClinics, useListSpecialties, useListBoroughs } from "@workspace/api-client-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Clock, Star, Search, ShieldCheck, ArrowRight, DoorOpen } from "lucide-react";
+import { MapPin, Clock, Star, Search, ShieldCheck, DoorOpen, GraduationCap, ChevronRight, Building2, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export default function Clinics() {
   const [search, setSearch] = useState("");
   const [specialty, setSpecialty] = useState<string>("all");
-  const [neighborhood, setNeighborhood] = useState<string>("all");
+  const [borough, setBorough] = useState<string | null>(null);
+  const [neighborhood, setNeighborhood] = useState<string | null>(null);
   const [acceptsInsurance, setAcceptsInsurance] = useState(false);
 
   const { data: specialties = [], isLoading: isLoadingSpecialties } = useListSpecialties();
-  const { data: neighborhoods = [], isLoading: isLoadingNeighborhoods } = useListNeighborhoods();
-  
+  const { data: boroughs = [], isLoading: isLoadingBoroughs } = useListBoroughs();
+
   const { data: clinics = [], isLoading: isLoadingClinics } = useListClinics({
     search: search || undefined,
     specialty: specialty !== "all" ? specialty : undefined,
-    neighborhood: neighborhood !== "all" ? neighborhood : undefined,
+    borough: borough ?? undefined,
+    neighborhood: neighborhood ?? undefined,
     acceptsNyuInsurance: acceptsInsurance ? true : undefined,
   });
+
+  const activeBoroughGroup = useMemo(
+    () => boroughs.find((b) => b.borough === borough),
+    [boroughs, borough],
+  );
+
+  const locationLabel = neighborhood
+    ? `${neighborhood}, ${borough}`
+    : borough
+      ? borough
+      : "Any Location";
+
+  const clearLocation = () => {
+    setBorough(null);
+    setNeighborhood(null);
+  };
 
   return (
     <div className="w-full bg-background min-h-screen py-8">
@@ -35,9 +54,9 @@ export default function Clinics() {
         </div>
 
         {/* Filters */}
-        <div className="bg-card border border-border rounded-xl p-4 sm:p-6 mb-8 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <div className="space-y-2 md:col-span-2 lg:col-span-1">
+        <div className="bg-card border border-border rounded-xl p-4 sm:p-6 mb-8 shadow-sm space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div className="space-y-2">
               <Label htmlFor="search">Search</Label>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -66,21 +85,6 @@ export default function Clinics() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="neighborhood">Neighborhood</Label>
-              <Select value={neighborhood} onValueChange={setNeighborhood}>
-                <SelectTrigger id="neighborhood">
-                  <SelectValue placeholder="Any Neighborhood" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Any Neighborhood</SelectItem>
-                  {neighborhoods.map(n => (
-                    <SelectItem key={n} value={n}>{n}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="flex items-center space-x-2 h-10 px-2">
               <Switch 
                 id="insurance" 
@@ -89,6 +93,89 @@ export default function Clinics() {
               />
               <Label htmlFor="insurance" className="cursor-pointer">Takes NYU Insurance</Label>
             </div>
+          </div>
+
+          {/* StreetEasy-style borough -> neighborhood drill down */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-1.5">
+                <MapPin className="h-4 w-4" /> Location
+              </Label>
+              {(borough || neighborhood) && (
+                <button
+                  onClick={clearLocation}
+                  className="text-xs font-medium text-muted-foreground hover:text-primary flex items-center gap-1"
+                >
+                  <X className="h-3 w-3" /> Clear
+                </button>
+              )}
+            </div>
+
+            {isLoadingBoroughs ? (
+              <div className="flex gap-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-9 w-28 rounded-lg" />
+                ))}
+              </div>
+            ) : !borough ? (
+              <div className="flex flex-wrap gap-2">
+                {boroughs.map((b) => (
+                  <button
+                    key={b.borough}
+                    onClick={() => setBorough(b.borough)}
+                    className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                  >
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    {b.borough}
+                    <Badge variant="secondary" className="ml-1 font-normal">{b.clinicCount}</Badge>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <button
+                    onClick={() => { setBorough(null); setNeighborhood(null); }}
+                    className="text-muted-foreground hover:text-primary font-medium"
+                  >
+                    All Boroughs
+                  </button>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="font-semibold">{borough}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setNeighborhood(null)}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+                      !neighborhood
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border bg-background hover:border-primary/50",
+                    )}
+                  >
+                    All of {borough}
+                  </button>
+                  {activeBoroughGroup?.neighborhoods.map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => setNeighborhood(n)}
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+                        neighborhood === n
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border bg-background hover:border-primary/50",
+                      )}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(borough || neighborhood) && (
+              <p className="text-xs text-muted-foreground">Showing clinics in {locationLabel}</p>
+            )}
           </div>
         </div>
 
@@ -118,7 +205,20 @@ export default function Clinics() {
           ) : (
             clinics.map((clinic, i) => (
               <Link key={clinic.id} href={`/clinics/${clinic.id}`}>
-                <Card className="h-full overflow-hidden hover:shadow-md hover:border-primary/50 transition-all cursor-pointer group flex flex-col animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 50}ms`, animationFillMode: "both" }}>
+                <Card
+                  className={cn(
+                    "h-full overflow-hidden hover:shadow-md transition-all cursor-pointer group flex flex-col animate-in fade-in slide-in-from-bottom-4",
+                    clinic.isNyuHealthCenter
+                      ? "border-2 border-primary shadow-md ring-2 ring-primary/10"
+                      : "hover:border-primary/50",
+                  )}
+                  style={{ animationDelay: `${i * 50}ms`, animationFillMode: "both" }}
+                >
+                  {clinic.isNyuHealthCenter && (
+                    <div className="bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-wider px-4 py-1.5 flex items-center gap-1.5">
+                      <GraduationCap className="h-3.5 w-3.5" /> NYU Student Health Center
+                    </div>
+                  )}
                   <div className="bg-secondary/30 p-4 border-b border-border flex justify-between items-start">
                     <div className="flex items-center gap-3">
                       <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-xl border ${clinic.averageWaitDays <= 2 ? 'bg-green-100 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400' : 'bg-background border-border'} shadow-sm`}>
@@ -154,10 +254,20 @@ export default function Clinics() {
                       )}
                     </div>
 
+                    {clinic.acceptedInsurancePlans.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {clinic.acceptedInsurancePlans.map((plan) => (
+                          <Badge key={plan.id} variant="secondary" className="font-normal text-xs">
+                            {plan.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+
                     <div className="space-y-2 mt-auto pt-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 shrink-0" />
-                        <span className="line-clamp-1">{clinic.neighborhood} • {clinic.distanceFromCampusMiles} mi from campus</span>
+                        <span className="line-clamp-1">{clinic.neighborhood}, {clinic.borough} • {clinic.distanceFromCampusMiles} mi from campus</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 shrink-0" />

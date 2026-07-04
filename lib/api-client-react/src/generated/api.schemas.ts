@@ -13,10 +13,23 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface InsurancePlan {
+  id: number;
+  name: string;
+  description: string;
+  annualPremium: number;
+  waivable: boolean;
+  keyBenefits: string[];
+  /** True if this is an official NYU-billed plan; false for popular alternative plans students carry instead */
+  isNyuPlan: boolean;
+}
+
 export interface Clinic {
   id: number;
   name: string;
   specialty: string;
+  /** One of Manhattan, Brooklyn, Queens */
+  borough: string;
   neighborhood: string;
   address: string;
   phone: string;
@@ -28,6 +41,15 @@ export interface Clinic {
   hours: string;
   notes: string;
   walkInAvailable: boolean;
+  /** True for the official NYU Student Health Center, so students can compare it against off-campus options */
+  isNyuHealthCenter: boolean;
+  acceptedInsurancePlans: InsurancePlan[];
+}
+
+export interface BoroughGroup {
+  borough: string;
+  neighborhoods: string[];
+  clinicCount: number;
 }
 
 export interface SpecialtyCount {
@@ -50,6 +72,8 @@ export interface Doctor {
   title: string;
   /** Soonest open appointment slot for this doctor */
   nextAvailableAt: string;
+  /** Headshot photo URL for this doctor */
+  imageUrl: string;
 }
 
 export interface Review {
@@ -81,17 +105,6 @@ export interface ReviewInput {
   reportedWaitDays?: number | null;
   /** @maxLength 1000 */
   comment?: string | null;
-}
-
-export interface InsurancePlan {
-  id: number;
-  name: string;
-  description: string;
-  annualPremium: number;
-  waivable: boolean;
-  keyBenefits: string[];
-  /** True if this is an official NYU-billed plan; false for popular alternative plans students carry instead */
-  isNyuPlan: boolean;
 }
 
 export interface Appointment {
@@ -139,6 +152,7 @@ export interface AppointmentInput {
 
 export type ListClinicsParams = {
 specialty?: string;
+borough?: string;
 neighborhood?: string;
 acceptsNyuInsurance?: boolean;
 search?: string;

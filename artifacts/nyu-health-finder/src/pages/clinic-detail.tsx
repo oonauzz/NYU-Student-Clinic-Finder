@@ -36,7 +36,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { MapPin, Clock, Star, Phone, ShieldCheck, DoorOpen, Navigation, ArrowLeft, AlertCircle, Calendar, User, MessageSquare, Plus, CalendarCheck } from "lucide-react";
+import { MapPin, Clock, Star, Phone, ShieldCheck, DoorOpen, Navigation, ArrowLeft, AlertCircle, Calendar, MessageSquare, Plus, CalendarCheck, GraduationCap } from "lucide-react";
 import { format, isToday, isTomorrow, isThisYear, parseISO, differenceInDays } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -225,10 +225,18 @@ export default function ClinicDetail() {
         </div>
 
         {/* Hero Section */}
-        <div className="bg-card border border-border rounded-2xl p-6 md:p-10 mb-8 shadow-sm flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
+        <div className={cn(
+          "bg-card border rounded-2xl p-6 md:p-10 mb-8 shadow-sm flex flex-col md:flex-row gap-8 items-start relative overflow-hidden",
+          clinic.isNyuHealthCenter ? "border-2 border-primary ring-2 ring-primary/10" : "border-border",
+        )}>
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
           
           <div className="flex-1 z-10">
+            {clinic.isNyuHealthCenter && (
+              <Badge className="mb-4 bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-1.5 w-fit">
+                <GraduationCap className="h-3.5 w-3.5" /> Official NYU Student Health Center
+              </Badge>
+            )}
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge variant="secondary" className="font-normal">{clinic.specialty}</Badge>
               {clinic.acceptsNyuInsurance && (
@@ -247,9 +255,14 @@ export default function ClinicDetail() {
               </div>
               <div className="flex items-center">
                 <MapPin className="h-4 w-4 mr-1.5" />
-                {clinic.neighborhood} ({clinic.distanceFromCampusMiles} mi)
+                {clinic.neighborhood}, {clinic.borough} ({clinic.distanceFromCampusMiles} mi)
               </div>
             </div>
+            {clinic.isNyuHealthCenter && (
+              <p className="text-sm text-muted-foreground bg-muted/50 border border-border rounded-lg px-4 py-3 max-w-xl">
+                This is NYU's own on-campus health center — compare its wait time and insurance coverage against the off-campus options below.
+              </p>
+            )}
           </div>
 
           <div className="flex-shrink-0 w-full md:w-auto z-10">
@@ -313,9 +326,11 @@ export default function ClinicDetail() {
                   doctors?.map((doctor, index) => (
                     <Card key={doctor.id} className="group hover:border-primary/50 transition-colors">
                       <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                        <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center text-primary shrink-0">
-                          <User className="h-6 w-6" />
-                        </div>
+                        <img
+                          src={doctor.imageUrl}
+                          alt={doctor.name}
+                          className="h-12 w-12 rounded-full object-cover shrink-0 border border-border"
+                        />
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <h3 className="font-bold text-lg">{doctor.name}</h3>
@@ -677,7 +692,7 @@ export default function ClinicDetail() {
 
             <section>
               <h2 className="text-2xl font-bold mb-4">Insurance Info</h2>
-              <Card className="bg-card">
+              <Card className="bg-card mb-4">
                 <CardContent className="p-6 flex items-start gap-4">
                   <div className={`p-3 rounded-full shrink-0 ${clinic.acceptsNyuInsurance ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'}`}>
                     <ShieldCheck className="h-6 w-6" />
@@ -694,6 +709,27 @@ export default function ClinicDetail() {
                   </div>
                 </CardContent>
               </Card>
+
+              {clinic.acceptedInsurancePlans.length > 0 && (
+                <Card className="bg-card">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-lg mb-4">Accepted Plans</h3>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {clinic.acceptedInsurancePlans.map((plan) => (
+                        <div key={plan.id} className="flex items-start gap-3 border border-border rounded-lg p-3">
+                          <div className={`p-2 rounded-full shrink-0 ${plan.isNyuPlan ? 'bg-primary/10 text-primary' : 'bg-secondary text-foreground'}`}>
+                            <ShieldCheck className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{plan.name}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{plan.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </section>
           </div>
 

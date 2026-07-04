@@ -6,6 +6,7 @@ export const clinicsTable = pgTable("clinics", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   specialty: text("specialty").notNull(),
+  borough: text("borough").notNull().default("Manhattan"),
   neighborhood: text("neighborhood").notNull(),
   address: text("address").notNull(),
   phone: text("phone").notNull(),
@@ -16,6 +17,7 @@ export const clinicsTable = pgTable("clinics", {
   hours: text("hours").notNull(),
   notes: text("notes").notNull(),
   walkInAvailable: boolean("walk_in_available").notNull().default(false),
+  isNyuHealthCenter: boolean("is_nyu_health_center").notNull().default(false),
 });
 
 export const insertClinicSchema = createInsertSchema(clinicsTable).omit({ id: true });
