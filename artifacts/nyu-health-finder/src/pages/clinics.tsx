@@ -29,7 +29,13 @@ export default function Clinics() {
   const { data: boroughs = [], isLoading: isLoadingBoroughs } = useListBoroughs();
   const { data: insurancePlans = [] } = useListInsurancePlans();
 
-  const { data: clinics = [], isLoading: isLoadingClinics } = useListClinics({
+  const { data: allClinics = [] } = useListClinics({});
+  const nyuHealthCenter = useMemo(
+    () => allClinics.find((c) => c.isNyuHealthCenter),
+    [allClinics],
+  );
+
+  const { data: rawClinics = [], isLoading: isLoadingClinics } = useListClinics({
     search: search || undefined,
     specialty: specialty !== "all" ? specialty : undefined,
     borough: borough ?? undefined,
@@ -37,6 +43,11 @@ export default function Clinics() {
     acceptsNyuInsurance: acceptsInsurance ? true : undefined,
     insurancePlanId: insurancePlanId !== "all" ? parseInt(insurancePlanId, 10) : undefined,
   });
+
+  const clinics = useMemo(
+    () => rawClinics.filter((c) => !c.isNyuHealthCenter),
+    [rawClinics],
+  );
 
   const activeBoroughGroup = useMemo(
     () => boroughs.find((b) => b.borough === borough),
@@ -77,6 +88,31 @@ export default function Clinics() {
           <h1 className="text-3xl font-bold tracking-tight mb-2">Find a Clinic</h1>
           <p className="text-muted-foreground text-lg">Browse faster alternatives to the NYU Student Health Center across NYC.</p>
         </div>
+
+        {/* NYU Student Health Center: pinned as the reference point, not a filterable alternative */}
+        {nyuHealthCenter && (
+          <Link href={`/clinics/${nyuHealthCenter.id}`} className="block mb-8">
+            <Card className="border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-colors">
+              <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                  <GraduationCap className="h-6 w-6" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-primary">Your Current Option</span>
+                  </div>
+                  <h3 className="text-lg font-bold">{nyuHealthCenter.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    The baseline everything below is measured against — ~{nyuHealthCenter.averageWaitDays} day wait, always covered by your student plan.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-sm font-medium text-primary shrink-0">
+                  View details <ChevronRight className="h-4 w-4" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
 
         {/* Filters */}
         <div className="bg-card border border-border rounded-xl p-4 sm:p-6 mb-8 shadow-sm space-y-6">
