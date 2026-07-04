@@ -6,6 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
-}
+export type ListClinicsParams = {
+specialty?: string;
+neighborhood?: string;
+acceptsNyuInsurance?: boolean;
+search?: string;
+};
