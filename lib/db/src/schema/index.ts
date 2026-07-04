@@ -19,3 +19,5 @@
 
 export * from "./clinics";
 export * from "./insurancePlans";
+export * from "./doctors";
+export * from "./clinicReviews";

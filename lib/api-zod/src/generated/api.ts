@@ -100,6 +100,84 @@ export const ListNeighborhoodsResponse = zod.array(ListNeighborhoodsResponseItem
 
 
 /**
+ * Returns doctors at this clinic, ordered from earliest to latest next available appointment
+ * @summary List doctors at a clinic
+ */
+export const ListClinicDoctorsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListClinicDoctorsResponseItem = zod.object({
+  "id": zod.number(),
+  "clinicId": zod.number(),
+  "name": zod.string(),
+  "title": zod.string().describe('e.g. \"MD, Family Medicine\"'),
+  "nextAvailableAt": zod.coerce.date().describe('Soonest open appointment slot for this doctor')
+})
+export const ListClinicDoctorsResponse = zod.array(ListClinicDoctorsResponseItem)
+
+
+/**
+ * @summary List reviews and wait time reports for a clinic
+ */
+export const ListClinicReviewsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const listClinicReviewsResponseRatingMax = 5;
+
+
+
+export const ListClinicReviewsResponseItem = zod.object({
+  "id": zod.number(),
+  "clinicId": zod.number(),
+  "authorName": zod.string(),
+  "rating": zod.number().min(1).max(listClinicReviewsResponseRatingMax),
+  "reportedWaitDays": zod.number().nullish().describe('Wait time in days the reviewer actually experienced, if reported'),
+  "comment": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListClinicReviewsResponse = zod.array(ListClinicReviewsResponseItem)
+
+
+/**
+ * @summary Submit a review and/or wait time report for a clinic
+ */
+export const CreateClinicReviewParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const createClinicReviewBodyAuthorNameMax = 80;
+
+export const createClinicReviewBodyRatingMax = 5;
+
+export const createClinicReviewBodyCommentMax = 1000;
+
+
+
+export const CreateClinicReviewBody = zod.object({
+  "authorName": zod.string().min(1).max(createClinicReviewBodyAuthorNameMax),
+  "rating": zod.number().min(1).max(createClinicReviewBodyRatingMax),
+  "reportedWaitDays": zod.number().nullish(),
+  "comment": zod.string().max(createClinicReviewBodyCommentMax).nullish()
+})
+
+export const createClinicReviewResponseRatingMax = 5;
+
+
+
+export const CreateClinicReviewResponse = zod.object({
+  "id": zod.number(),
+  "clinicId": zod.number(),
+  "authorName": zod.string(),
+  "rating": zod.number().min(1).max(createClinicReviewResponseRatingMax),
+  "reportedWaitDays": zod.number().nullish().describe('Wait time in days the reviewer actually experienced, if reported'),
+  "comment": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary List NYU student health insurance plan info
  */
 export const ListInsurancePlansResponseItem = zod.object({

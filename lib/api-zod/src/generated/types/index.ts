@@ -8,8 +8,11 @@
 
 export * from './clinic';
 export * from './clinicsSummary';
+export * from './doctor';
 export * from './errorResponse';
 export * from './healthStatus';
 export * from './insurancePlan';
 export * from './listClinicsParams';
+export * from './review';
+export * from './reviewInput';
 export * from './specialtyCount';

@@ -31,7 +31,7 @@ export default function Clinics() {
       <div className="container mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight mb-2">Find a Clinic</h1>
-          <p className="text-muted-foreground text-lg">Browse faster alternatives to the NYU Student Health Center.</p>
+          <p className="text-muted-foreground text-lg">Browse faster alternatives to the NYU Student Health Center across NYC.</p>
         </div>
 
         {/* Filters */}

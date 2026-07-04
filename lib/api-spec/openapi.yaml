@@ -129,6 +129,82 @@ paths:
                 type: array
                 items:
                   type: string
+  /clinics/{id}/doctors:
+    get:
+      operationId: listClinicDoctors
+      tags: [clinics]
+      summary: List doctors at a clinic
+      description: Returns doctors at this clinic, ordered from earliest to latest next available appointment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of doctors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Doctor"
+  /clinics/{id}/reviews:
+    get:
+      operationId: listClinicReviews
+      tags: [clinics]
+      summary: List reviews and wait time reports for a clinic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of reviews, newest first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      operationId: createClinicReview
+      tags: [clinics]
+      summary: Submit a review and/or wait time report for a clinic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "201":
+          description: Created review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Clinic not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /insurance-plans:
     get:
       operationId: listInsurancePlans
@@ -231,6 +307,78 @@ components:
           type: string
         count:
           type: integer
+    Doctor:
+      type: object
+      required:
+        - id
+        - clinicId
+        - name
+        - title
+        - nextAvailableAt
+      properties:
+        id:
+          type: integer
+        clinicId:
+          type: integer
+        name:
+          type: string
+        title:
+          type: string
+          description: e.g. "MD, Family Medicine"
+        nextAvailableAt:
+          type: string
+          format: date-time
+          description: Soonest open appointment slot for this doctor
+    Review:
+      type: object
+      required:
+        - id
+        - clinicId
+        - authorName
+        - rating
+        - createdAt
+      properties:
+        id:
+          type: integer
+        clinicId:
+          type: integer
+        authorName:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        reportedWaitDays:
+          type: number
+          nullable: true
+          description: Wait time in days the reviewer actually experienced, if reported
+        comment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    ReviewInput:
+      type: object
+      required:
+        - authorName
+        - rating
+      properties:
+        authorName:
+          type: string
+          minLength: 1
+          maxLength: 80
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        reportedWaitDays:
+          type: number
+          nullable: true
+        comment:
+          type: string
+          nullable: true
+          maxLength: 1000
     InsurancePlan:
       type: object
       required:

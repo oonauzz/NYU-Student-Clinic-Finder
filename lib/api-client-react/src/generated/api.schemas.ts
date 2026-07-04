@@ -42,6 +42,47 @@ export interface ClinicsSummary {
   specialtyBreakdown: SpecialtyCount[];
 }
 
+export interface Doctor {
+  id: number;
+  clinicId: number;
+  name: string;
+  /** e.g. "MD, Family Medicine" */
+  title: string;
+  /** Soonest open appointment slot for this doctor */
+  nextAvailableAt: string;
+}
+
+export interface Review {
+  id: number;
+  clinicId: number;
+  authorName: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  /** Wait time in days the reviewer actually experienced, if reported */
+  reportedWaitDays?: number | null;
+  comment?: string | null;
+  createdAt: string;
+}
+
+export interface ReviewInput {
+  /**
+     * @minLength 1
+     * @maxLength 80
+     */
+  authorName: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  reportedWaitDays?: number | null;
+  /** @maxLength 1000 */
+  comment?: string | null;
+}
+
 export interface InsurancePlan {
   id: number;
   name: string;

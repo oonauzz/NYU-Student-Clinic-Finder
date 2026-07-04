@@ -22,7 +22,7 @@ export default function Home() {
             Skip the 3-week wait for the NYU Student Health Center.
           </h1>
           <p className="text-lg md:text-xl text-primary-foreground/80 mb-10 max-w-2xl mx-auto">
-            Find trusted, fast-booking clinics near Washington Square Park that accept the NYU student health insurance plan.
+            Find trusted, fast-booking clinics across NYC that accept the NYU student health insurance plan.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 rounded-full h-14 px-8 text-lg">
@@ -132,8 +132,8 @@ export default function Home() {
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-6">
                   <MapPin className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Proximity to campus</h3>
-                <p className="text-muted-foreground">Find clinics in Greenwich Village, SoHo, and Union Square. Easily walk or take a quick train.</p>
+                <h3 className="text-xl font-bold mb-3">Convenient locations</h3>
+                <p className="text-muted-foreground">Find clinics across Manhattan, Brooklyn, and Queens. Easily accessible by foot or subway.</p>
               </CardContent>
             </Card>
           </div>

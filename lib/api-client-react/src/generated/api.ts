@@ -6,11 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
@@ -18,14 +22,17 @@ import type {
 import type {
   Clinic,
   ClinicsSummary,
+  Doctor,
   ErrorResponse,
   HealthStatus,
   InsurancePlan,
-  ListClinicsParams
+  ListClinicsParams,
+  Review,
+  ReviewInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
-import type { ErrorType } from '../custom-fetch';
+import type { ErrorType , BodyType } from '../custom-fetch';
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -522,6 +529,232 @@ export function useListNeighborhoods<TData = Awaited<ReturnType<typeof listNeigh
 
 
 
+
+export const getListClinicDoctorsUrl = (id: number,) => {
+
+
+
+
+  return `/api/clinics/${id}/doctors`
+}
+
+/**
+ * Returns doctors at this clinic, ordered from earliest to latest next available appointment
+ * @summary List doctors at a clinic
+ */
+export const listClinicDoctors = async (id: number, options?: RequestInit): Promise<Doctor[]> => {
+
+  return customFetch<Doctor[]>(getListClinicDoctorsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListClinicDoctorsQueryKey = (id: number,) => {
+    return [
+    `/api/clinics/${id}/doctors`
+    ] as const;
+    }
+
+
+export const getListClinicDoctorsQueryOptions = <TData = Awaited<ReturnType<typeof listClinicDoctors>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClinicDoctors>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListClinicDoctorsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listClinicDoctors>>> = ({ signal }) => listClinicDoctors(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listClinicDoctors>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListClinicDoctorsQueryResult = NonNullable<Awaited<ReturnType<typeof listClinicDoctors>>>
+export type ListClinicDoctorsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List doctors at a clinic
+ */
+
+export function useListClinicDoctors<TData = Awaited<ReturnType<typeof listClinicDoctors>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClinicDoctors>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListClinicDoctorsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListClinicReviewsUrl = (id: number,) => {
+
+
+
+
+  return `/api/clinics/${id}/reviews`
+}
+
+/**
+ * @summary List reviews and wait time reports for a clinic
+ */
+export const listClinicReviews = async (id: number, options?: RequestInit): Promise<Review[]> => {
+
+  return customFetch<Review[]>(getListClinicReviewsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListClinicReviewsQueryKey = (id: number,) => {
+    return [
+    `/api/clinics/${id}/reviews`
+    ] as const;
+    }
+
+
+export const getListClinicReviewsQueryOptions = <TData = Awaited<ReturnType<typeof listClinicReviews>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClinicReviews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListClinicReviewsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listClinicReviews>>> = ({ signal }) => listClinicReviews(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listClinicReviews>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListClinicReviewsQueryResult = NonNullable<Awaited<ReturnType<typeof listClinicReviews>>>
+export type ListClinicReviewsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List reviews and wait time reports for a clinic
+ */
+
+export function useListClinicReviews<TData = Awaited<ReturnType<typeof listClinicReviews>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClinicReviews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListClinicReviewsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateClinicReviewUrl = (id: number,) => {
+
+
+
+
+  return `/api/clinics/${id}/reviews`
+}
+
+/**
+ * @summary Submit a review and/or wait time report for a clinic
+ */
+export const createClinicReview = async (id: number,
+    reviewInput: ReviewInput, options?: RequestInit): Promise<Review> => {
+
+  return customFetch<Review>(getCreateClinicReviewUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(reviewInput)
+  }
+);}
+
+
+
+
+export const getCreateClinicReviewMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClinicReview>>, TError,{id: number;data: BodyType<ReviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createClinicReview>>, TError,{id: number;data: BodyType<ReviewInput>}, TContext> => {
+
+const mutationKey = ['createClinicReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createClinicReview>>, {id: number;data: BodyType<ReviewInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  createClinicReview(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateClinicReviewMutationResult = NonNullable<Awaited<ReturnType<typeof createClinicReview>>>
+    export type CreateClinicReviewMutationBody = BodyType<ReviewInput>
+    export type CreateClinicReviewMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Submit a review and/or wait time report for a clinic
+ */
+export const useCreateClinicReview = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClinicReview>>, TError,{id: number;data: BodyType<ReviewInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createClinicReview>>,
+        TError,
+        {id: number;data: BodyType<ReviewInput>},
+        TContext
+      > => {
+      return useMutation(getCreateClinicReviewMutationOptions(options));
+    }
 
 export const getListInsurancePlansUrl = () => {
 
