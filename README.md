@@ -1,4 +1,4 @@
-# NYU Health Finder
+# NYU Student Clinic Finder
 
 > **Find a clinic faster than waiting 3 weeks for the NYU Student Health Center.**
 
