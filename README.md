@@ -4,8 +4,7 @@
 
 A full-stack web app for NYU students to discover vetted NYC clinics that accept the NYU student health insurance plan (SHIP), with real wait times, walk-in availability, insurance filtering, and side-by-side clinic comparison.
 
-**Live demo:** [https://be2a33e3-cb52-4bde-85d1-1a7abb2a3a60-00-1nrv0l4y67arr.janeway.replit.dev](https://student-health-finder--oonazhoulm.replit.app/)
-
+**Live demo:** https://student-health-finder--oonazhoulm.replit.app
 ---
 
 ## The problem
